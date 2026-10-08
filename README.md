@@ -2,6 +2,10 @@
 
 零构建的独立 Web MVP。当前实现四柱、十神、藏干、大运、流年和流月，以及紫微斗数十二宫基础盘。
 
+在线体验：[https://rechel-star.github.io/zhaojian-mingli/](https://rechel-star.github.io/zhaojian-mingli/)
+
+GitHub Pages 版本支持本地排盘；AI 解读需要自行部署 `backend.py` 并配置 DeepSeek 密钥。
+
 ## 本地运行
 
 ```bash
