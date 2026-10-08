@@ -55,15 +55,15 @@
             <fieldset>
               <legend>性别</legend>
               <div class="segmented">
-                <label><input type="radio" name="gender" value="0" required><span>女</span></label>
-                <label><input type="radio" name="gender" value="1"><span>男</span></label>
+                <label><input type="radio" name="gender" value="0" aria-label="女" required><span>女</span></label>
+                <label><input type="radio" name="gender" value="1" aria-label="男"><span>男</span></label>
               </div>
             </fieldset>
             <fieldset>
               <legend>时制</legend>
               <div class="segmented">
-                <label><input type="radio" name="timeMode" value="clock" checked><span>北京时间</span></label>
-                <label><input type="radio" name="timeMode" value="solar"><span>真太阳时</span></label>
+                <label><input type="radio" name="timeMode" value="clock" aria-label="北京时间" checked><span>北京时间</span></label>
+                <label><input type="radio" name="timeMode" value="solar" aria-label="真太阳时"><span>真太阳时</span></label>
               </div>
             </fieldset>
           </div>
@@ -118,6 +118,13 @@
             </div>
             <div class="pillars" id="pillars"></div>
             <div class="chart-foot" id="chartFoot"></div>
+            <div class="shensha-panel">
+              <div class="shensha-heading">
+                <span><i data-lucide="asterisk"></i> 四柱神煞</span>
+                <small>辅助参考，不单独定吉凶</small>
+              </div>
+              <div class="shensha-columns" id="shenshaColumns"></div>
+            </div>
           </section>
 
           <section class="timeline-section">
