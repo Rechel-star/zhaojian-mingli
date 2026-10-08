@@ -27,7 +27,7 @@ python3 backend.py
 - 大运按阴阳年与性别顺逆排
 - 起运采用分钟折算法
 - 真太阳时包含出生地经度差与均时差近似修正
-- 基础神煞按日干及年支、日支逐柱匹配，仅作辅助参考，不单独定吉凶
+- 常用神煞采用 `@soul-atelier/bazi 0.9.1` 规则集逐柱匹配，包含干支、月令、特殊日柱等多类规则；仅作辅助参考，不单独定吉凶
 
 紫微斗数：
 
@@ -85,3 +85,4 @@ AI 不接收原始生日后自行排盘。后端先生成不可变的 `chart JSO
 - `vendor/lunar.js`: [lunar-javascript](https://github.com/6tail/lunar-javascript), MIT License
 - `vendor/lucide.min.js`: [Lucide](https://lucide.dev/), ISC License
 - `vendor/iztro.min.js`: [iztro](https://github.com/SylarLong/iztro), MIT License
+- `vendor/soul-bazi.min.js`: [@soul-atelier/bazi](https://github.com/soul-atelier/sdks), MIT License

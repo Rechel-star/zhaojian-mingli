@@ -1,24 +1,10 @@
-/* global Solar, iztro, lucide */
+/* global Solar, SoulBazi, iztro, lucide */
 
 const $ = (selector) => document.querySelector(selector);
 const ELEMENT = { 甲: "木", 乙: "木", 丙: "火", 丁: "火", 戊: "土", 己: "土", 庚: "金", 辛: "金", 壬: "水", 癸: "水" };
 const BRANCH_ELEMENT = { 子: "水", 丑: "土", 寅: "木", 卯: "木", 辰: "土", 巳: "火", 午: "火", 未: "土", 申: "金", 酉: "金", 戌: "土", 亥: "水" };
 const CITY_LONGITUDE = { "遵义": 106.93, "贵州省遵义市": 106.93, "北京": 116.4, "上海": 121.47, "广州": 113.27, "深圳": 114.06, "成都": 104.07, "重庆": 106.55 };
 const MONTH_NAMES = ["正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月"];
-const DAY_GAN_SHENSHA = {
-  天乙贵人: { 甲: "丑未", 戊: "丑未", 庚: "丑未", 乙: "子申", 己: "子申", 丙: "亥酉", 丁: "亥酉", 壬: "卯巳", 癸: "卯巳", 辛: "寅午" },
-  文昌: { 甲: "巳", 乙: "午", 丙: "申", 戊: "申", 丁: "酉", 己: "酉", 庚: "亥", 辛: "子", 壬: "寅", 癸: "卯" },
-  禄神: { 甲: "寅", 乙: "卯", 丙: "巳", 戊: "巳", 丁: "午", 己: "午", 庚: "申", 辛: "酉", 壬: "亥", 癸: "子" },
-  羊刃: { 甲: "卯", 乙: "寅", 丙: "午", 戊: "午", 丁: "巳", 己: "巳", 庚: "酉", 辛: "申", 壬: "子", 癸: "亥" }
-};
-const BRANCH_GROUP_SHENSHA = {
-  桃花: { 申子辰: "酉", 寅午戌: "卯", 巳酉丑: "午", 亥卯未: "子" },
-  驿马: { 申子辰: "寅", 寅午戌: "申", 巳酉丑: "亥", 亥卯未: "巳" },
-  华盖: { 申子辰: "辰", 寅午戌: "戌", 巳酉丑: "丑", 亥卯未: "未" },
-  将星: { 申子辰: "子", 寅午戌: "午", 巳酉丑: "酉", 亥卯未: "卯" },
-  劫煞: { 申子辰: "巳", 寅午戌: "亥", 巳酉丑: "寅", 亥卯未: "申" },
-  亡神: { 申子辰: "亥", 寅午戌: "巳", 巳酉丑: "申", 亥卯未: "寅" }
-};
 
 const state = {
   year: new Date().getFullYear(),
@@ -99,30 +85,31 @@ function makeChart(form) {
     { label: "日柱", gz: eight.getDay(), relation: "日主", hidden: eight.getDayHideGan(), hiddenRelation: eight.getDayShiShenZhi(), nayin: eight.getDayNaYin() },
     { label: "时柱", gz: eight.getTime(), relation: eight.getTimeShiShenGan(), hidden: eight.getTimeHideGan(), hiddenRelation: eight.getTimeShiShenZhi(), nayin: eight.getTimeNaYin() }
   ];
-  const shenSha = calculateShenSha(pillars, eight.getDayGan(), eight.getYearZhi(), eight.getDayZhi());
+  const shenSha = calculateShenSha(pillars, form);
   pillars.forEach((pillar, index) => { pillar.shenSha = shenSha[index]; });
   return { form, solar, lunar, eight, yun, pillars };
 }
 
-function groupTarget(table, branch) {
-  const group = Object.keys(table).find((key) => key.includes(branch));
-  return group ? table[group] : "";
-}
-
-function calculateShenSha(pillars, dayGan, yearBranch, dayBranch) {
-  return pillars.map((pillar) => {
-    const targetBranch = pillar.gz[1];
-    const result = new Set();
-    Object.entries(DAY_GAN_SHENSHA).forEach(([name, table]) => {
-      if ((table[dayGan] || "").includes(targetBranch)) result.add(name);
-    });
-    [yearBranch, dayBranch].forEach((baseBranch) => {
-      Object.entries(BRANCH_GROUP_SHENSHA).forEach(([name, table]) => {
-        if (groupTarget(table, baseBranch) === targetBranch) result.add(name);
-      });
-    });
-    return [...result];
+function calculateShenSha(pillars, form) {
+  const d = form.date;
+  const result = SoulBazi.calculateChart({
+    year: d.getFullYear(),
+    month: d.getMonth() + 1,
+    day: d.getDate(),
+    hour: d.getHours(),
+    minute: d.getMinutes(),
+    gender: form.gender === 0 ? "female" : "male",
+    tzOffsetMinutes: 480
   });
+  const keys = ["year", "month", "day", "hour"];
+  const samePillars = keys.every((key, index) => result[key].sixtyCycleName === pillars[index].gz);
+  if (!samePillars) {
+    console.warn("神煞引擎与主排盘四柱不一致，已停止展示神煞。");
+    return pillars.map(() => []);
+  }
+  return keys.map((key) => result.shenSha
+    .filter((item) => item.pillars.includes(key))
+    .map((item) => ({ name: item.name, classification: item.classification })));
 }
 
 function getTimeIndex(date) {
@@ -251,7 +238,9 @@ function renderChart() {
   $("#shenshaColumns").innerHTML = pillars.map((pillar) => `
     <div>
       <span>${pillar.label}</span>
-      <strong>${pillar.shenSha.length ? pillar.shenSha.join(" · ") : "—"}</strong>
+      <strong>${pillar.shenSha.length
+        ? pillar.shenSha.map((item) => `<b class="shensha-tag ${item.classification}">${item.name}</b>`).join("")
+        : "—"}</strong>
     </div>
   `).join("");
 
@@ -367,7 +356,7 @@ function getInterpretationPayload() {
           stem,
           tenGod: pillar.hiddenRelation[index]
         })),
-        shenSha: pillar.shenSha
+        shenSha: pillar.shenSha.map((item) => item.name)
       })),
       dayMaster: `${eight.getDayGan()}${ELEMENT[eight.getDayGan()]}`,
       mingGong: eight.getMingGong(),

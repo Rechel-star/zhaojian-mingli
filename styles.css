@@ -333,7 +333,11 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
 }
 .shensha-columns > div:last-child { border-right: 0; }
 .shensha-columns span { display: block; color: var(--muted); font-size: 9px; }
-.shensha-columns strong { display: block; margin-top: 7px; color: var(--ink); font: 500 10px/1.7 "Noto Serif SC", serif; }
+.shensha-columns strong { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; color: var(--ink); font: 500 10px/1.7 "Noto Serif SC", serif; }
+.shensha-tag { display: inline-block; padding: 1px 5px; border-left: 2px solid var(--line); background: var(--paper); font: 500 9px/1.6 "Noto Serif SC", serif; }
+.shensha-tag.ji { border-left-color: var(--jade); }
+.shensha-tag.xiong { border-left-color: var(--vermilion); }
+.shensha-tag.zhong { border-left-color: var(--gold); }
 .timeline-section, .year-section, .reading-section { margin-top: 54px; }
 .dayun-track {
   display: grid;
