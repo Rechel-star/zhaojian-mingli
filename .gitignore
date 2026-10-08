@@ -1,4 +1,5 @@
 .env
 .gh-config/
+.vercel/
 __pycache__/
 *.pyc

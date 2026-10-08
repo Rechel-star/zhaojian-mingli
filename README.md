@@ -6,6 +6,9 @@
 
 GitHub Pages 版本支持本地排盘；AI 解读需要自行部署 `backend.py` 并配置 DeepSeek 密钥。
 
+完整 AI 版本可部署至 Vercel，`api/` 目录包含同源 Python Functions；在 Vercel 项目中配置
+`AI_BASE_URL`、`AI_API_KEY` 和 `AI_MODEL` 三个环境变量即可。
+
 ## 本地运行
 
 ```bash
