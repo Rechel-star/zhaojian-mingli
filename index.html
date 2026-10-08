@@ -32,48 +32,48 @@
         <form id="birthForm">
           <label>
             <span>姓名 / 称呼</span>
-            <input id="name" value="瑞秋" autocomplete="off">
+            <input id="name" placeholder="可选" autocomplete="off">
           </label>
           <div class="field-row">
             <label>
               <span>公历生日</span>
-              <input id="birthDate" type="date" value="2005-04-25" required>
+              <input id="birthDate" type="date" required>
             </label>
             <label>
               <span>出生时间</span>
-              <input id="birthTime" type="time" value="16:30" required>
+              <input id="birthTime" type="time" required>
             </label>
           </div>
           <label>
             <span>出生地</span>
             <div class="input-icon">
               <i data-lucide="map-pin"></i>
-              <input id="birthPlace" value="贵州省遵义市" autocomplete="off">
+              <input id="birthPlace" placeholder="例如：北京市" autocomplete="off" required>
             </div>
           </label>
           <div class="field-row">
             <fieldset>
               <legend>性别</legend>
               <div class="segmented">
-                <label><input type="radio" name="gender" value="0" checked><span>女</span></label>
+                <label><input type="radio" name="gender" value="0" required><span>女</span></label>
                 <label><input type="radio" name="gender" value="1"><span>男</span></label>
               </div>
             </fieldset>
             <fieldset>
               <legend>时制</legend>
               <div class="segmented">
-                <label><input type="radio" name="timeMode" value="clock"><span>北京时间</span></label>
-                <label><input type="radio" name="timeMode" value="solar" checked><span>真太阳时</span></label>
+                <label><input type="radio" name="timeMode" value="clock" checked><span>北京时间</span></label>
+                <label><input type="radio" name="timeMode" value="solar"><span>真太阳时</span></label>
               </div>
             </fieldset>
           </div>
           <div class="time-note">
             <i data-lucide="clock-3"></i>
-            <span id="timeNote">遵义经度校正约 -50 分钟，仍在申时范围。</span>
+            <span id="timeNote">选择真太阳时后，将按出生地经度校正时辰。</span>
           </div>
           <button class="primary-btn" type="submit">
             <i data-lucide="sparkles"></i>
-            重新排盘
+            开始排盘
           </button>
         </form>
         <div class="method-note">
@@ -84,12 +84,27 @@
       </aside>
 
       <section class="content">
-        <div id="baziView">
+        <div class="chart-empty" id="chartEmpty">
+          <div class="empty-compass" aria-hidden="true">
+            <span>照</span>
+            <i></i><i></i><i></i><i></i>
+          </div>
+          <span class="eyebrow">建立你的时间坐标</span>
+          <h1>从出生信息开始</h1>
+          <p>填写左侧资料后生成四柱与紫微十二宫。排盘在浏览器本地完成，AI 仅在你主动请求解读时接收结构化结果。</p>
+          <div class="empty-methods">
+            <span><i data-lucide="columns-4"></i> 四柱与十神</span>
+            <span><i data-lucide="orbit"></i> 紫微十二宫</span>
+            <span><i data-lucide="sparkles"></i> 分层 AI 解读</span>
+          </div>
+        </div>
+
+        <div id="baziView" hidden>
           <div class="hero-line">
             <div>
               <span class="eyebrow">本命四柱</span>
-              <h1><span id="profileName">瑞秋</span>的时间坐标</h1>
-              <p id="lunarDate">农历乙酉年三月十七 · 申时</p>
+              <h1><span id="profileName">命主</span>的时间坐标</h1>
+              <p id="lunarDate"></p>
             </div>
             <div class="accuracy">
               <i data-lucide="badge-check"></i>
@@ -223,8 +238,8 @@
           <div class="ziwei-hero">
             <div>
               <span class="eyebrow">三合派基础盘</span>
-              <h1><span id="ziweiProfileName">瑞秋</span>的紫微十二宫</h1>
-              <p id="ziweiDate">农历乙酉年三月十七 · 申时</p>
+              <h1><span id="ziweiProfileName">命主</span>的紫微十二宫</h1>
+              <p id="ziweiDate"></p>
             </div>
             <div class="ziwei-legend" aria-label="四化图例">
               <span><b class="mutagen lu">禄</b> 化禄</span>

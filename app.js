@@ -15,7 +15,8 @@ const state = {
   activeDaYun: 0,
   aiConfigured: false,
   aiLoading: false,
-  interpretationScope: "natal"
+  interpretationScope: "natal",
+  activeView: "bazi"
 };
 
 const SCOPE_COPY = {
@@ -518,9 +519,12 @@ async function requestZiweiInterpretation() {
 }
 
 function switchView(view) {
+  state.activeView = view;
   const isBazi = view === "bazi";
-  $("#baziView").hidden = !isBazi;
-  $("#ziweiView").hidden = isBazi;
+  const hasChart = Boolean(state.chart);
+  $("#chartEmpty").hidden = hasChart;
+  $("#baziView").hidden = !hasChart || !isBazi;
+  $("#ziweiView").hidden = !hasChart || isBazi;
   $(".profile-panel .method-note p").textContent = isBazi
     ? "子平法 · 立春换年 · 节气定月 · 晚子时换日（流派二）"
     : "三合派基础盘 · 生年四化 · 真太阳时定时辰";
@@ -548,6 +552,10 @@ $("#birthForm").addEventListener("submit", (event) => {
   event.preventDefault();
   state.chart = makeChart(parseBirthForm());
   renderChart();
+  $("#chartEmpty").hidden = true;
+  $("#birthForm button[type='submit']").innerHTML = '<i data-lucide="refresh-cw"></i> 重新排盘';
+  switchView(state.activeView);
+  lucide.createIcons();
 });
 $("#prevYear").addEventListener("click", () => {
   state.year -= 1;
@@ -582,7 +590,6 @@ $("#infoDialog").addEventListener("click", (event) => {
   if (event.target === $("#infoDialog")) $("#infoDialog").close();
 });
 
-state.chart = makeChart(parseBirthForm());
-renderChart();
 checkAiHealth();
+switchView("bazi");
 lucide.createIcons();
