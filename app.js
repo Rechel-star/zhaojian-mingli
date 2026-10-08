@@ -5,13 +5,39 @@ const ELEMENT = { 甲: "木", 乙: "木", 丙: "火", 丁: "火", 戊: "土", �
 const BRANCH_ELEMENT = { 子: "水", 丑: "土", 寅: "木", 卯: "木", 辰: "土", 巳: "火", 午: "火", 未: "土", 申: "金", 酉: "金", 戌: "土", 亥: "水" };
 const CITY_LONGITUDE = { "遵义": 106.93, "贵州省遵义市": 106.93, "北京": 116.4, "上海": 121.47, "广州": 113.27, "深圳": 114.06, "成都": 104.07, "重庆": 106.55 };
 const MONTH_NAMES = ["正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月"];
-const MAINSTREAM_SHENSHA = new Set([
-  "天乙贵人", "太极贵人", "天德贵人", "月德贵人",
-  "文昌", "福星贵人", "国印贵人", "禄神", "羊刃",
-  "驿马", "桃花", "华盖", "将星", "劫煞", "亡神",
-  "天医", "红鸾", "天喜", "孤辰", "寡宿", "魁罡",
-  "学堂", "词馆"
-]);
+const BRANCHES = [..."子丑寅卯辰巳午未申酉戌亥"];
+const SHENSHA_REFERENCE = [
+  ["天乙贵人"], ["天德贵人"], ["月德贵人"], ["禄神"], ["文昌"],
+  ["太极贵人"], ["国印贵人"], ["将星"], ["金舆"], ["天厨贵人"],
+  ["福星贵人"], ["驿马"], ["桃花"], ["红鸾", "天喜"], ["魁罡"],
+  ["红艳"], ["孤鸾煞"], ["羊刃"], ["空亡"], ["亡神"],
+  ["劫煞"], ["灾煞", "白虎"], ["孤辰", "寡宿"], ["勾绞煞"],
+  ["天罗地网"], ["大耗", "小耗"], ["飞刃", "血刃"], ["流霞"], ["阴差阳错"]
+];
+const SHENSHA_DISPLAY = {
+  文昌: "文昌贵人",
+  金舆: "金舆贵人",
+  桃花: "咸池",
+  红艳: "红艳煞",
+  "红鸾|天喜": "红鸾、天喜",
+  "灾煞|白虎": "灾煞（白虎）",
+  "孤辰|寡宿": "孤辰、寡宿",
+  "大耗|小耗": "大耗、小耗",
+  "飞刃|血刃": "飞刃、血刃"
+};
+const SHENSHA_CLASS = {
+  天乙贵人: "ji", 天德贵人: "ji", 月德贵人: "ji", 禄神: "ji",
+  文昌: "ji", 太极贵人: "ji", 国印贵人: "ji", 将星: "ji",
+  金舆: "ji", 天厨贵人: "ji", 福星贵人: "ji", 红鸾: "zhong",
+  天喜: "ji", 驿马: "zhong", 桃花: "zhong", 魁罡: "zhong",
+  红艳: "zhong", 孤鸾煞: "xiong", 羊刃: "xiong", 空亡: "zhong",
+  亡神: "xiong", 劫煞: "xiong", 灾煞: "xiong", 白虎: "xiong",
+  孤辰: "zhong", 寡宿: "zhong", 勾绞煞: "xiong", 天罗地网: "xiong",
+  大耗: "xiong", 小耗: "xiong", 飞刃: "xiong", 血刃: "xiong",
+  流霞: "zhong", 阴差阳错: "xiong"
+};
+const GU_LUAN_DAYS = new Set(["乙巳", "丁巳", "辛亥", "戊申", "壬寅", "戊午", "壬子", "丙午"]);
+const YIN_YANG_ERROR_DAYS = new Set(["丙子", "丁丑", "戊寅", "辛卯", "壬辰", "癸巳", "丙午", "丁未", "戊申", "辛酉", "壬戌", "癸亥"]);
 
 const state = {
   year: new Date().getFullYear(),
@@ -114,9 +140,55 @@ function calculateShenSha(pillars, form) {
     console.warn("神煞引擎与主排盘四柱不一致，已停止展示神煞。");
     return pillars.map(() => []);
   }
-  return keys.map((key) => result.shenSha
-    .filter((item) => item.pillars.includes(key) && MAINSTREAM_SHENSHA.has(item.name))
-    .map((item) => ({ name: item.name, classification: item.classification })));
+  const rawByPillar = keys.map((key) => result.shenSha
+    .filter((item) => item.pillars.includes(key))
+    .map((item) => item.name));
+  addReferenceShenSha(rawByPillar, pillars);
+
+  return rawByPillar.map((rawNames) => SHENSHA_REFERENCE.flatMap((group) => {
+    if (!group.some((name) => rawNames.includes(name))) return [];
+    const key = group.join("|");
+    const classification = group.some((name) => SHENSHA_CLASS[name] === "xiong")
+      ? "xiong"
+      : group.some((name) => SHENSHA_CLASS[name] === "zhong") ? "zhong" : "ji";
+    return [{ name: SHENSHA_DISPLAY[key] || SHENSHA_DISPLAY[group[0]] || group[0], classification }];
+  }));
+}
+
+function addReferenceShenSha(rawByPillar, pillars) {
+  const add = (index, name) => {
+    if (!rawByPillar[index].includes(name)) rawByPillar[index].push(name);
+  };
+  const branches = pillars.map((pillar) => pillar.gz[1]);
+  const dayGanIndex = "甲乙丙丁戊己庚辛壬癸".indexOf(pillars[2].gz[0]);
+  const dayBranchIndex = BRANCHES.indexOf(branches[2]);
+  const xunStart = (dayBranchIndex - dayGanIndex + 12) % 12;
+  const voidBranches = [BRANCHES[(xunStart + 10) % 12], BRANCHES[(xunStart + 11) % 12]];
+
+  branches.forEach((branch, index) => {
+    if (index !== 2 && voidBranches.includes(branch)) add(index, "空亡");
+  });
+
+  [2, 3].forEach((index) => {
+    if (GU_LUAN_DAYS.has(pillars[index].gz)) add(index, "孤鸾煞");
+  });
+  if (YIN_YANG_ERROR_DAYS.has(pillars[2].gz)) add(2, "阴差阳错");
+
+  const yearIndex = BRANCHES.indexOf(branches[0]);
+  branches.forEach((branch, index) => {
+    if (index === 0) return;
+    const branchIndex = BRANCHES.indexOf(branch);
+    if (branchIndex === (yearIndex + 3) % 12 || branchIndex === (yearIndex + 9) % 12) add(index, "勾绞煞");
+    if (branchIndex === (yearIndex + 5) % 12) add(index, "小耗");
+  });
+
+  [branches[0], branches[2]].forEach((baseBranch) => {
+    const counterpart = { 辰: "巳", 巳: "辰", 戌: "亥", 亥: "戌" }[baseBranch];
+    if (!counterpart) return;
+    branches.forEach((branch, index) => {
+      if (branch === counterpart) add(index, "天罗地网");
+    });
+  });
 }
 
 function getTimeIndex(date) {
