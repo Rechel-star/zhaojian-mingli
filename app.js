@@ -5,6 +5,13 @@ const ELEMENT = { 甲: "木", 乙: "木", 丙: "火", 丁: "火", 戊: "土", �
 const BRANCH_ELEMENT = { 子: "水", 丑: "土", 寅: "木", 卯: "木", 辰: "土", 巳: "火", 午: "火", 未: "土", 申: "金", 酉: "金", 戌: "土", 亥: "水" };
 const CITY_LONGITUDE = { "遵义": 106.93, "贵州省遵义市": 106.93, "北京": 116.4, "上海": 121.47, "广州": 113.27, "深圳": 114.06, "成都": 104.07, "重庆": 106.55 };
 const MONTH_NAMES = ["正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月"];
+const MAINSTREAM_SHENSHA = new Set([
+  "天乙贵人", "太极贵人", "天德贵人", "月德贵人",
+  "文昌", "福星贵人", "国印贵人", "禄神", "羊刃",
+  "驿马", "桃花", "华盖", "将星", "劫煞", "亡神",
+  "天医", "红鸾", "天喜", "孤辰", "寡宿", "魁罡",
+  "学堂", "词馆"
+]);
 
 const state = {
   year: new Date().getFullYear(),
@@ -108,7 +115,7 @@ function calculateShenSha(pillars, form) {
     return pillars.map(() => []);
   }
   return keys.map((key) => result.shenSha
-    .filter((item) => item.pillars.includes(key))
+    .filter((item) => item.pillars.includes(key) && MAINSTREAM_SHENSHA.has(item.name))
     .map((item) => ({ name: item.name, classification: item.classification })));
 }
 
@@ -387,7 +394,7 @@ function getInterpretationPayload() {
     });
   }
 
-  const natalRule = `日主${eight.getDayGan()}${ELEMENT[eight.getDayGan()]}；四柱天干十神依次为${pillars.map((item) => `${item.label}${item.relation}`).join("、")}；神煞仅作辅助参考，不得单独定吉凶。`;
+  const natalRule = `日主${eight.getDayGan()}${ELEMENT[eight.getDayGan()]}；四柱天干十神依次为${pillars.map((item) => `${item.label}${item.relation}`).join("、")}；仅提供主流常用神煞，且不得依据神煞单独定吉凶。`;
   const rules = [natalRule];
   if (scope === "dayun" && dayun) {
     rules.push(`当前为${dayun.getGanZhi()}大运，大运天干十神为${relationToDayMaster(eight.getDayGan(), dayun.getGanZhi()[0])}。`);
