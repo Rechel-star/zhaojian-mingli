@@ -1,0 +1,10 @@
+{
+  "name": "mingli-assistant",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "零构建的四柱命理时间助手 MVP",
+  "scripts": {
+    "serve": "python3 backend.py"
+  }
+}

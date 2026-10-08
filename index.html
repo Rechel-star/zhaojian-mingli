@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f3efe5">
+  <title>照见 · 命理时间助手</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="照见首页">
+        <span class="brand-mark">照</span>
+        <span><strong>照见</strong><small>命理时间助手</small></span>
+      </a>
+      <nav class="view-switch" aria-label="命盘类型">
+        <button class="view-tab active" data-view="bazi">四柱八字</button>
+        <button class="view-tab" data-view="ziwei">紫微斗数</button>
+      </nav>
+      <button class="icon-btn" id="privacyBtn" title="隐私说明" aria-label="隐私说明">
+        <i data-lucide="shield-check"></i>
+      </button>
+    </header>
+
+    <main class="workspace">
+      <aside class="profile-panel">
+        <div class="panel-heading">
+          <span class="eyebrow">命主档案</span>
+          <span class="local-badge"><i data-lucide="hard-drive"></i> 仅本机</span>
+        </div>
+        <form id="birthForm">
+          <label>
+            <span>姓名 / 称呼</span>
+            <input id="name" value="瑞秋" autocomplete="off">
+          </label>
+          <div class="field-row">
+            <label>
+              <span>公历生日</span>
+              <input id="birthDate" type="date" value="2005-04-25" required>
+            </label>
+            <label>
+              <span>出生时间</span>
+              <input id="birthTime" type="time" value="16:30" required>
+            </label>
+          </div>
+          <label>
+            <span>出生地</span>
+            <div class="input-icon">
+              <i data-lucide="map-pin"></i>
+              <input id="birthPlace" value="贵州省遵义市" autocomplete="off">
+            </div>
+          </label>
+          <div class="field-row">
+            <fieldset>
+              <legend>性别</legend>
+              <div class="segmented">
+                <label><input type="radio" name="gender" value="0" checked><span>女</span></label>
+                <label><input type="radio" name="gender" value="1"><span>男</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>时制</legend>
+              <div class="segmented">
+                <label><input type="radio" name="timeMode" value="clock"><span>北京时间</span></label>
+                <label><input type="radio" name="timeMode" value="solar" checked><span>真太阳时</span></label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="time-note">
+            <i data-lucide="clock-3"></i>
+            <span id="timeNote">遵义经度校正约 -50 分钟，仍在申时范围。</span>
+          </div>
+          <button class="primary-btn" type="submit">
+            <i data-lucide="sparkles"></i>
+            重新排盘
+          </button>
+        </form>
+        <div class="method-note">
+          <span>排盘口径</span>
+          <p>子平法 · 立春换年 · 节气定月 · 晚子时换日（流派二）</p>
+          <button id="methodBtn" type="button">查看计算说明 <i data-lucide="arrow-up-right"></i></button>
+        </div>
+      </aside>
+
+      <section class="content">
+        <div id="baziView">
+          <div class="hero-line">
+            <div>
+              <span class="eyebrow">本命四柱</span>
+              <h1><span id="profileName">瑞秋</span>的时间坐标</h1>
+              <p id="lunarDate">农历乙酉年三月十七 · 申时</p>
+            </div>
+            <div class="accuracy">
+              <i data-lucide="badge-check"></i>
+              <span><strong>规则计算</strong><small>非 AI 推算</small></span>
+            </div>
+          </div>
+
+          <section class="pillars-section" aria-label="四柱命盘">
+            <div class="pillar-labels">
+              <span>年柱</span><span>月柱</span><span>日柱</span><span>时柱</span>
+            </div>
+            <div class="pillars" id="pillars"></div>
+            <div class="chart-foot" id="chartFoot"></div>
+          </section>
+
+          <section class="timeline-section">
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">十年一运</span>
+                <h2>大运时间轴</h2>
+              </div>
+              <span class="start-age" id="startAge">约 3 岁 4 个月起运</span>
+            </div>
+            <div class="dayun-track" id="dayunTrack"></div>
+          </section>
+
+          <section class="year-section">
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">逐年查看</span>
+                <h2>流年与流月</h2>
+              </div>
+              <div class="year-stepper">
+                <button id="prevYear" class="icon-btn" title="上一年" aria-label="上一年"><i data-lucide="chevron-left"></i></button>
+                <strong id="selectedYear">2026</strong>
+                <button id="nextYear" class="icon-btn" title="下一年" aria-label="下一年"><i data-lucide="chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="year-summary">
+              <div class="year-seal" id="yearGanZhi">丙午</div>
+              <div>
+                <span id="yearRelation">流年 · 正印 / 比肩</span>
+                <p id="yearContext">当前年份与本命、大运之间的关系由规则层生成。</p>
+              </div>
+            </div>
+            <div class="month-strip" id="monthStrip"></div>
+          </section>
+
+          <section class="reading-section">
+            <div class="reading-heading">
+              <div>
+                <span class="eyebrow">规则层观察</span>
+                <h2 id="readingTitle">2026 年 10 月</h2>
+              </div>
+              <span class="rule-chip">规则摘要</span>
+            </div>
+            <div class="reading-grid">
+              <article>
+                <i data-lucide="compass"></i>
+                <span>时间关系</span>
+                <p id="timeReading"></p>
+              </article>
+              <article>
+                <i data-lucide="layers-3"></i>
+                <span>命盘关注</span>
+                <p id="chartReading"></p>
+              </article>
+            </div>
+          </section>
+
+          <section class="ai-section" id="aiWorkbench">
+            <div class="ai-section-head">
+              <div>
+                <span class="eyebrow">AI 解读室</span>
+                <h2>先定范围，再问问题</h2>
+              </div>
+              <span class="model-status" id="aiStatus">
+                <i data-lucide="loader-circle"></i>
+                正在检查模型
+              </span>
+            </div>
+
+            <div class="scope-layout">
+              <div class="scope-nav" role="tablist" aria-label="解读范围">
+                <button class="scope-btn active" data-scope="natal" role="tab" aria-selected="true">
+                  <i data-lucide="circle-dot"></i>
+                  <span><strong>本命全盘</strong><small>性格结构与长期倾向</small></span>
+                </button>
+                <button class="scope-btn" data-scope="dayun" role="tab" aria-selected="false">
+                  <i data-lucide="route"></i>
+                  <span><strong>当前大运</strong><small id="dayunScopeLabel">十年阶段主题</small></span>
+                </button>
+                <button class="scope-btn" data-scope="year" role="tab" aria-selected="false">
+                  <i data-lucide="calendar-days"></i>
+                  <span><strong>所选流年</strong><small id="yearScopeLabel">2026 年</small></span>
+                </button>
+                <button class="scope-btn" data-scope="month" role="tab" aria-selected="false">
+                  <i data-lucide="calendar-range"></i>
+                  <span><strong>所选流月</strong><small id="monthScopeLabel">2026 年 10 月</small></span>
+                </button>
+              </div>
+
+              <div class="ai-compose">
+                <div class="scope-context">
+                  <span id="scopeKicker">正在解读 · 本命全盘</span>
+                  <p id="scopeDescription">只分析四柱、十神与命局结构，不带入任何大运、流年或流月。</p>
+                </div>
+                <label for="aiQuestion">你想重点了解什么？</label>
+              <div class="ai-prompt-row">
+                  <textarea id="aiQuestion" rows="3" maxlength="500" placeholder="例如：这张命盘的核心性格、优势和容易卡住的地方是什么？"></textarea>
+                <button class="primary-btn" id="aiAskBtn" type="button" disabled>
+                  <i data-lucide="send"></i>
+                  解读
+                </button>
+              </div>
+                <small class="ai-boundary">模型只解释已计算的数据，不参与排盘。</small>
+              </div>
+            </div>
+
+            <div class="ai-output" id="aiOutput" aria-live="polite" hidden>
+                <div class="ai-output-head">
+                  <span><i data-lucide="sparkles"></i> 照见解读</span>
+                  <small id="aiMeta"></small>
+                </div>
+                <p id="aiContent"></p>
+            </div>
+          </section>
+        </div>
+
+        <div id="ziweiView" hidden>
+          <div class="ziwei-hero">
+            <div>
+              <span class="eyebrow">三合派基础盘</span>
+              <h1><span id="ziweiProfileName">瑞秋</span>的紫微十二宫</h1>
+              <p id="ziweiDate">农历乙酉年三月十七 · 申时</p>
+            </div>
+            <div class="ziwei-legend" aria-label="四化图例">
+              <span><b class="mutagen lu">禄</b> 化禄</span>
+              <span><b class="mutagen quan">权</b> 化权</span>
+              <span><b class="mutagen ke">科</b> 化科</span>
+              <span><b class="mutagen ji">忌</b> 化忌</span>
+            </div>
+          </div>
+
+          <div class="ziwei-board-wrap">
+            <div class="ziwei-board" id="ziweiBoard" aria-label="紫微斗数十二宫"></div>
+          </div>
+
+          <section class="palace-inspector">
+            <div class="palace-inspector-head">
+              <div>
+                <span class="eyebrow">宫位详览</span>
+                <h2 id="palaceDetailTitle">命宫 · 甲申</h2>
+              </div>
+              <span class="rule-chip" id="palaceDecadal">大限 2—11</span>
+            </div>
+            <div class="palace-detail-grid">
+              <div>
+                <span>主星</span>
+                <div class="star-list major-detail" id="palaceMajorStars"></div>
+              </div>
+              <div>
+                <span>辅煞星</span>
+                <div class="star-list" id="palaceMinorStars"></div>
+              </div>
+              <div>
+                <span>杂曜与十二长生</span>
+                <p id="palaceAdjectiveStars"></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="ziwei-ai">
+            <div class="ziwei-ai-copy">
+              <span class="eyebrow">AI 宫位解读</span>
+              <h2>解读全盘，或聚焦当前宫位</h2>
+              <p>排盘由 iztro 固定生成，DeepSeek 只解释已显示的宫位、星曜与四化。</p>
+            </div>
+            <div class="ziwei-ai-controls">
+              <div class="ziwei-scope-switch">
+                <label><input type="radio" name="ziweiScope" value="ziweiNatal" checked><span>全盘格局</span></label>
+                <label><input type="radio" name="ziweiScope" value="ziweiPalace"><span>当前宫位</span></label>
+              </div>
+              <textarea id="ziweiQuestion" rows="2" maxlength="500" placeholder="例如：这张盘的核心优势和长期课题是什么？"></textarea>
+              <button class="primary-btn" id="ziweiAskBtn" type="button" disabled>
+                <i data-lucide="send"></i> 解读
+              </button>
+            </div>
+            <div class="ziwei-ai-output" id="ziweiAiOutput" hidden>
+              <div><span><i data-lucide="sparkles"></i> 紫微解读</span><small id="ziweiAiMeta"></small></div>
+              <p id="ziweiAiContent"></p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="infoDialog">
+    <button class="dialog-close icon-btn" aria-label="关闭"><i data-lucide="x"></i></button>
+    <span class="eyebrow" id="dialogEyebrow">计算说明</span>
+    <h2 id="dialogTitle">确定性规则优先</h2>
+    <div id="dialogContent"></div>
+  </dialog>
+
+  <script src="./vendor/lunar.js"></script>
+  <script src="./vendor/iztro.min.js"></script>
+  <script src="./vendor/lucide.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
