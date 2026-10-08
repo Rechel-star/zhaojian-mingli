@@ -2,9 +2,9 @@
 
 零构建的独立 Web MVP。当前实现四柱、十神、藏干、大运、流年和流月，以及紫微斗数十二宫基础盘。
 
-在线体验：[https://rechel-star.github.io/zhaojian-mingli/](https://rechel-star.github.io/zhaojian-mingli/)
+完整 AI 版：[https://zhaojian-mingli.vercel.app/](https://zhaojian-mingli.vercel.app/)
 
-GitHub Pages 版本支持本地排盘；AI 解读需要自行部署 `backend.py` 并配置 DeepSeek 密钥。
+静态备用版：[https://rechel-star.github.io/zhaojian-mingli/](https://rechel-star.github.io/zhaojian-mingli/)
 
 完整 AI 版本可部署至 Vercel，`api/` 目录包含同源 Python Functions；在 Vercel 项目中配置
 `AI_BASE_URL`、`AI_API_KEY` 和 `AI_MODEL` 三个环境变量即可。

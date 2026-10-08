@@ -1,5 +1,8 @@
 .env
 .gh-config/
 .vercel/
+.vercel-home/
 __pycache__/
 *.pyc
+.vercel
+.env*
