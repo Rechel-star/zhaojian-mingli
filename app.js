@@ -49,7 +49,9 @@ const state = {
   aiConfigured: false,
   aiLoading: false,
   interpretationScope: "natal",
-  activeView: "bazi"
+  activeView: "bazi",
+  ziweiYear: new Date().getFullYear(),
+  ziweiHoroscope: null
 };
 
 const SCOPE_COPY = {
@@ -203,15 +205,72 @@ function makeZiweiChart(form) {
   return iztro.astro.bySolar(solarDate, getTimeIndex(d), gender, true, "zh-CN");
 }
 
-function starMarkup(star, prominent = false) {
+function starMarkup(star, prominent = false, annualMutagen = "") {
   const mutagen = star.mutagen ? `<b class="mutagen ${star.mutagen === "禄" ? "lu" : star.mutagen === "权" ? "quan" : star.mutagen === "科" ? "ke" : "ji"}">${star.mutagen}</b>` : "";
+  const annual = annualMutagen ? `<b class="annual-mutagen ${annualMutagen === "禄" ? "lu" : annualMutagen === "权" ? "quan" : annualMutagen === "科" ? "ke" : "ji"}">流${annualMutagen}</b>` : "";
   const brightness = star.brightness ? `<small>${star.brightness}</small>` : "";
-  return `<span class="star ${prominent ? "major-star" : ""}">${star.name}${brightness}${mutagen}</span>`;
+  return `<span class="star ${prominent ? "major-star" : ""}">${star.name}${brightness}${mutagen}${annual}</span>`;
+}
+
+function getZiweiAnnualData() {
+  const chart = state.ziweiChart;
+  if (!chart) return null;
+  const targetDate = new Date(state.ziweiYear, 6, 1, 12);
+  const horoscope = chart.horoscope(targetDate);
+  const transformations = ["禄", "权", "科", "忌"].map((mutagen, index) => {
+    const starName = horoscope.yearly.mutagen[index];
+    const palace = chart.palaces.find((item) =>
+      [...item.majorStars, ...item.minorStars, ...item.adjectiveStars].some((star) => star.name === starName)
+    );
+    return { mutagen, starName, palaceIndex: palace?.index ?? -1, palaceName: palace?.name || "未定位" };
+  });
+  const lifePalaceIndex = horoscope.yearly.palaceNames.findIndex((name) => name === "命宫");
+  const lifePalace = chart.palaces.find((palace) => palace.index === lifePalaceIndex);
+  const decadalPalace = chart.palaces.find((palace) => palace.index === horoscope.decadal.index);
+  state.ziweiHoroscope = horoscope;
+  return { horoscope, transformations, lifePalaceIndex, lifePalace, decadalPalace };
+}
+
+function getZiweiYearBounds() {
+  const birthYear = state.chart?.form.date.getFullYear() || 1900;
+  return { min: birthYear, max: birthYear + 120 };
+}
+
+function annualArrowSvg(transformations) {
+  const position = {
+    巳: [1, 1], 午: [1, 2], 未: [1, 3], 申: [1, 4],
+    辰: [2, 1], 酉: [2, 4], 卯: [3, 1], 戌: [3, 4],
+    寅: [4, 1], 丑: [4, 2], 子: [4, 3], 亥: [4, 4]
+  };
+  const offsets = [{ x: 1.65, y: 1.62 }, { x: 2.35, y: 1.62 }, { x: 1.65, y: 2.38 }, { x: 2.35, y: 2.38 }];
+  const colors = { 禄: "#37815e", 权: "#b64a36", 科: "#39758a", 忌: "#514b64" };
+  const paths = transformations.flatMap((item, index) => {
+    const palace = state.ziweiChart.palaces.find((entry) => entry.index === item.palaceIndex);
+    if (!palace) return [];
+    const [row, column] = position[palace.earthlyBranch];
+    const targetX = column - 0.5;
+    const targetY = row - 0.5;
+    const source = offsets[index];
+    const controlX = source.x + (targetX - source.x) * 0.42;
+    const controlY = source.y + (targetY - source.y) * 0.42;
+    return `<path class="annual-arrow ${item.mutagen === "禄" ? "lu" : item.mutagen === "权" ? "quan" : item.mutagen === "科" ? "ke" : "ji"}"
+      d="M ${source.x} ${source.y} Q ${controlX} ${controlY}, ${targetX} ${targetY}"
+      marker-end="url(#arrow-${item.mutagen})" />`;
+  }).join("");
+  const markers = Object.entries(colors).map(([name, color]) => `
+    <marker id="arrow-${name}" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="${color}" />
+    </marker>
+  `).join("");
+  return `<svg class="ziwei-arrows" viewBox="0 0 4 4" preserveAspectRatio="none" aria-hidden="true">
+    <defs>${markers}</defs>${paths}
+  </svg>`;
 }
 
 function renderZiweiChart() {
   const chart = state.ziweiChart;
   if (!chart) return;
+  const annual = getZiweiAnnualData();
   const position = {
     巳: [1, 1], 午: [1, 2], 未: [1, 3], 申: [1, 4],
     辰: [2, 1], 酉: [2, 4],
@@ -220,14 +279,25 @@ function renderZiweiChart() {
   };
   $("#ziweiProfileName").textContent = state.chart.form.name;
   $("#ziweiDate").textContent = `${chart.lunarDate} · ${chart.timeRange} · ${chart.gender}`;
+  const yearBounds = getZiweiYearBounds();
+  $("#ziweiYear").min = yearBounds.min;
+  $("#ziweiYear").max = yearBounds.max;
+  $("#ziweiYear").value = state.ziweiYear;
+  $("#ziweiYearGanZhi").textContent = `${annual.horoscope.yearly.heavenlyStem}${annual.horoscope.yearly.earthlyBranch}流年`;
+  $("#ziweiYearLife").textContent = `流年命宫落 ${annual.lifePalace?.name || "未定位"}`;
+  $("#ziweiYearAge").textContent = `虚岁 ${annual.horoscope.age.nominalAge} · 大限落 ${annual.decadalPalace?.name || "未定位"}`;
 
   const center = `
     <div class="ziwei-center">
-      <span class="ziwei-center-mark">紫</span>
-      <strong>${chart.fiveElementsClass}</strong>
-      <p>命主 ${chart.soul} · 身主 ${chart.body}</p>
-      <div><span>命宫 ${chart.earthlyBranchOfSoulPalace}</span><span>身宫 ${chart.earthlyBranchOfBodyPalace}</span></div>
-      <small>${chart.chineseDate}</small>
+      <div class="ziwei-center-title">
+        <span class="ziwei-center-mark">流</span>
+        <div><small>${state.ziweiYear} 年 · 虚岁 ${annual.horoscope.age.nominalAge}</small><strong>${annual.horoscope.yearly.heavenlyStem}${annual.horoscope.yearly.earthlyBranch}</strong></div>
+      </div>
+      <p>流年命宫落 ${annual.lifePalace?.name || "未定位"} · ${chart.fiveElementsClass}</p>
+      <div class="annual-transform-list">
+        ${annual.transformations.map((item) => `<span><b class="mutagen ${item.mutagen === "禄" ? "lu" : item.mutagen === "权" ? "quan" : item.mutagen === "科" ? "ke" : "ji"}">${item.mutagen}</b>${item.starName}<small>${item.palaceName}</small></span>`).join("")}
+      </div>
+      <small>命主 ${chart.soul} · 身主 ${chart.body}</small>
     </div>
   `;
   const palaces = chart.palaces.map((palace) => {
@@ -236,15 +306,22 @@ function renderZiweiChart() {
       "ziwei-palace",
       palace.name === "命宫" ? "soul-palace" : "",
       palace.isBodyPalace ? "body-palace" : "",
+      palace.index === annual.lifePalaceIndex ? "annual-life-palace" : "",
+      palace.index === annual.horoscope.decadal.index ? "decadal-palace" : "",
       palace.index === state.selectedPalaceIndex ? "selected" : ""
     ].filter(Boolean).join(" ");
+    const annualPalaceName = annual.horoscope.yearly.palaceNames[palace.index] || "";
+    const annualMutagenFor = (starName) => annual.transformations.find((item) => item.starName === starName)?.mutagen || "";
+    const palaceTransformations = annual.transformations.filter((item) => item.palaceIndex === palace.index);
     const major = palace.majorStars.length
-      ? palace.majorStars.map((star) => starMarkup(star, true)).join("")
+      ? palace.majorStars.map((star) => starMarkup(star, true, annualMutagenFor(star.name))).join("")
       : '<span class="empty-star">空宫</span>';
-    const minor = palace.minorStars.slice(0, 4).map((star) => starMarkup(star)).join("");
+    const minor = palace.minorStars.slice(0, 4).map((star) => starMarkup(star, false, annualMutagenFor(star.name))).join("");
     return `
       <button class="${classes}" data-palace-index="${palace.index}" style="grid-row:${row};grid-column:${column}">
         <span class="palace-top"><b>${palace.name}</b><small>${palace.heavenlyStem}${palace.earthlyBranch}</small></span>
+        <span class="annual-palace-name">${annualPalaceName === "命宫" ? "流年命宫" : `流${annualPalaceName.replace("宫", "")}`}</span>
+        ${palaceTransformations.length ? `<span class="palace-annual-marks">${palaceTransformations.map((item) => `<b class="${item.mutagen === "禄" ? "lu" : item.mutagen === "权" ? "quan" : item.mutagen === "科" ? "ke" : "ji"}">流${item.mutagen}</b>`).join("")}</span>` : ""}
         <span class="palace-stars">${major}</span>
         <span class="palace-minor">${minor}</span>
         <span class="palace-bottom">
@@ -254,7 +331,7 @@ function renderZiweiChart() {
       </button>
     `;
   }).join("");
-  $("#ziweiBoard").innerHTML = center + palaces;
+  $("#ziweiBoard").innerHTML = center + palaces + annualArrowSvg(annual.transformations);
   document.querySelectorAll("[data-palace-index]").forEach((button) => {
     button.addEventListener("click", () => selectZiweiPalace(Number(button.dataset.palaceIndex)));
   });
@@ -271,13 +348,16 @@ function selectZiweiPalace(index) {
 function renderPalaceDetail() {
   const palace = state.ziweiChart.palaces.find((item) => item.index === state.selectedPalaceIndex);
   if (!palace) return;
+  const annual = getZiweiAnnualData();
+  const annualMutagenFor = (starName) => annual.transformations.find((item) => item.starName === starName)?.mutagen || "";
   $("#palaceDetailTitle").textContent = `${palace.name} · ${palace.heavenlyStem}${palace.earthlyBranch}${palace.isBodyPalace ? " · 身宫" : ""}`;
-  $("#palaceDecadal").textContent = `大限 ${palace.decadal.range[0]}—${palace.decadal.range[1]} 岁`;
+  const annualName = annual.horoscope.yearly.palaceNames[palace.index];
+  $("#palaceDecadal").textContent = `大限 ${palace.decadal.range[0]}—${palace.decadal.range[1]} 岁 · 流年${annualName}`;
   $("#palaceMajorStars").innerHTML = palace.majorStars.length
-    ? palace.majorStars.map((star) => starMarkup(star, true)).join("")
+    ? palace.majorStars.map((star) => starMarkup(star, true, annualMutagenFor(star.name))).join("")
     : '<span class="empty-star">本宫无十四主星，需结合对宫与三方四正观察</span>';
   $("#palaceMinorStars").innerHTML = palace.minorStars.length
-    ? palace.minorStars.map((star) => starMarkup(star)).join("")
+    ? palace.minorStars.map((star) => starMarkup(star, false, annualMutagenFor(star.name))).join("")
     : '<span class="empty-star">无主要辅煞星</span>';
   const adjective = palace.adjectiveStars.map((star) => star.name).join("、") || "无";
   $("#palaceAdjectiveStars").textContent = `${adjective} · 十二长生：${palace.changsheng12}`;
@@ -327,6 +407,7 @@ function renderChart() {
   renderDaYun();
   renderYear();
   state.ziweiChart = makeZiweiChart(form);
+  state.ziweiYear = Math.max(form.date.getFullYear(), new Date().getFullYear());
   const soulPalace = state.ziweiChart.palaces.find((palace) => palace.name === "命宫");
   state.selectedPalaceIndex = soulPalace ? soulPalace.index : 0;
   renderZiweiChart();
@@ -568,6 +649,7 @@ function getZiweiPayload() {
   const chart = state.ziweiChart;
   const selected = chart.palaces.find((palace) => palace.index === state.selectedPalaceIndex);
   const scope = document.querySelector('input[name="ziweiScope"]:checked').value;
+  const annual = getZiweiAnnualData();
   const palaceData = (palace) => ({
     name: palace.name,
     heavenlyStem: palace.heavenlyStem,
@@ -580,19 +662,33 @@ function getZiweiPayload() {
   return {
     chartType: "ziwei",
     scope,
-    scopeLabel: scope === "ziweiNatal" ? "紫微本命全盘" : `${selected.name}宫位`,
+    scopeLabel: scope === "ziweiNatal" ? "紫微本命全盘" : scope === "ziweiYear" ? `${state.ziweiYear} 紫微流年` : `${selected.name}宫位`,
     chart: {
       fiveElementsClass: chart.fiveElementsClass,
       soul: chart.soul,
       body: chart.body,
       soulPalaceBranch: chart.earthlyBranchOfSoulPalace,
       bodyPalaceBranch: chart.earthlyBranchOfBodyPalace,
-      palaces: scope === "ziweiNatal" ? chart.palaces.map(palaceData) : [palaceData(selected)]
+      palaces: scope === "ziweiPalace" ? [palaceData(selected)] : chart.palaces.map(palaceData),
+      annual: scope === "ziweiYear" ? {
+        year: state.ziweiYear,
+        heavenlyStem: annual.horoscope.yearly.heavenlyStem,
+        earthlyBranch: annual.horoscope.yearly.earthlyBranch,
+        nominalAge: annual.horoscope.age.nominalAge,
+        lifePalace: annual.lifePalace?.name || "",
+        decadalPalace: annual.decadalPalace?.name || "",
+        palaceNames: annual.horoscope.yearly.palaceNames,
+        transformations: annual.transformations
+      } : null
     },
     timing: {},
     rules: [
       `采用三合派基础盘与生年四化；五行局为${chart.fiveElementsClass}，命主${chart.soul}，身主${chart.body}。`,
-      scope === "ziweiNatal" ? "请结合十二宫、主星、辅煞星与四化整体观察。" : `当前聚焦${selected.name}，不延伸到未提供的运限。`
+      scope === "ziweiNatal"
+        ? "请结合十二宫、主星、辅煞星与生年四化整体观察。"
+        : scope === "ziweiYear"
+          ? `请只叠加${state.ziweiYear}年流年命宫、当前大限与流年四化。`
+          : `当前聚焦${selected.name}，不延伸到未提供的运限。`
     ],
     question: $("#ziweiQuestion").value
   };
@@ -639,7 +735,7 @@ function switchView(view) {
   $("#ziweiView").hidden = !hasChart || isBazi;
   $(".profile-panel .method-note p").textContent = isBazi
     ? "子平法 · 立春换年 · 节气定月 · 晚子时换日（流派二）"
-    : "三合派基础盘 · 生年四化 · 真太阳时定时辰";
+    : "三合派基础盘 · 大限流年 · 流年四化飞星";
   document.querySelectorAll(".view-tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === view));
 }
 
@@ -654,7 +750,7 @@ function openDialog(type) {
     $("#dialogTitle").textContent = "排盘与解读分开";
     const isZiwei = !$("#ziweiView").hidden;
     $("#dialogContent").innerHTML = isZiwei
-      ? "<ul><li>紫微盘由固定版本 iztro 2.6.1 计算。</li><li>采用三合派基础盘，显示十二宫、命身宫、五行局、主辅煞星和生年四化。</li><li>出生时辰使用与四柱相同的真太阳时修正结果。</li><li>AI 只能解释页面已生成的宫位数据，不负责安星或推导额外飞化。</li></ul>"
+      ? "<ul><li>紫微盘与大限、流年数据由固定版本 iztro 2.6.1 计算。</li><li>中宫箭头表示所选年份的禄、权、科、忌分别飞入哪一宫，并非宫位之间的因果关系。</li><li>朱砂侧标为流年命宫，金色侧标为当前大限所在宫。</li><li>出生时辰使用与四柱相同的真太阳时修正结果；AI 只解释页面已生成的数据。</li></ul>"
       : "<ul><li>四柱由本地历法库按节气计算，立春换年、节气定月。</li><li>遵义默认经度 106.93°E，真太阳时包含经度差与均时差近似修正。</li><li>大运按阴阳年与性别判定顺逆，起运采用分钟折算法。</li><li>AI 只接收所选范围对应的标准命盘 JSON 与规则结论，不负责排盘。</li></ul>";
   }
   dialog.showModal();
@@ -691,9 +787,24 @@ document.querySelectorAll('input[name="ziweiScope"]').forEach((input) => {
     $("#ziweiAiOutput").hidden = true;
     $("#ziweiQuestion").placeholder = input.value === "ziweiNatal"
       ? "例如：这张盘的核心优势和长期课题是什么？"
-      : "例如：当前宫位的主星组合意味着什么？";
+      : input.value === "ziweiYear"
+        ? `例如：${state.ziweiYear} 年哪些宫位被重点触发？`
+        : "例如：这个宫位的主星组合应如何理解？";
   });
 });
+
+function setZiweiYear(year) {
+  const bounds = getZiweiYearBounds();
+  const next = Math.max(bounds.min, Math.min(bounds.max, Number(year) || new Date().getFullYear()));
+  state.ziweiYear = next;
+  $("#ziweiAiOutput").hidden = true;
+  renderZiweiChart();
+}
+
+$("#ziweiPrevYear").addEventListener("click", () => setZiweiYear(state.ziweiYear - 1));
+$("#ziweiNextYear").addEventListener("click", () => setZiweiYear(state.ziweiYear + 1));
+$("#ziweiCurrentYear").addEventListener("click", () => setZiweiYear(new Date().getFullYear()));
+$("#ziweiYear").addEventListener("change", (event) => setZiweiYear(event.target.value));
 document.querySelectorAll(".scope-btn").forEach((button) => {
   button.addEventListener("click", () => setInterpretationScope(button.dataset.scope));
 });

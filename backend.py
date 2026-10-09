@@ -33,9 +33,10 @@ SYSTEM_PROMPT = """你是“照见”命理时间助手的解读层。
 5. 不提供医疗、法律、投资决策，不制造恐惧或依赖。
 6. 如果数据不足，直接说明不足，不补造结论。
 7. 用户问题若超出命盘数据，给出日常、可执行且低风险的建议。
-8. 严格按照 scope 解读：natal 只谈四柱本命，dayun 只叠加大运，year 可叠加流年，month 才能讨论流月；ziweiNatal 可谈所给十二宫整体，ziweiPalace 只能谈所给宫位。
+8. 严格按照 scope 解读：natal 只谈四柱本命，dayun 只叠加大运，year 可叠加流年，month 才能讨论流月；ziweiNatal 只谈本命十二宫，ziweiYear 才能叠加所选紫微流年与流年四化，ziweiPalace 只能谈所给宫位。
 9. 紫微数据中，只有星曜对象的 mutagen 字段非空时才可称为化禄、化权、化科或化忌；宫位 heavenlyStem 只用于显示，不得据此另行推导飞化。
 10. 四柱神煞只能作为辅助线索，禁止依据单个神煞直接判断吉凶、性格或具体事件。
+11. 紫微流年箭头只表示流年禄、权、科、忌落入对应星曜所在宫，不代表宫位之间存在因果、相冲或能量流动。
 末尾固定附上：以上内容仅作传统文化与自我观察参考，不替代现实中的专业判断。"""
 
 
@@ -77,7 +78,7 @@ def clean_payload(data: dict[str, Any]) -> dict[str, Any]:
     if chart_type not in {"bazi", "ziwei"}:
         raise ValueError("命盘类型不正确")
     scope = str(data.get("scope", "natal"))
-    allowed_scopes = {"natal", "dayun", "year", "month"} if chart_type == "bazi" else {"ziweiNatal", "ziweiPalace"}
+    allowed_scopes = {"natal", "dayun", "year", "month"} if chart_type == "bazi" else {"ziweiNatal", "ziweiYear", "ziweiPalace"}
     if scope not in allowed_scopes:
         raise ValueError("解读范围不正确")
     chart = data.get("chart")
@@ -99,7 +100,7 @@ def clean_payload(data: dict[str, Any]) -> dict[str, Any]:
         }
     else:
         palaces = chart.get("palaces")
-        expected = 12 if scope == "ziweiNatal" else 1
+        expected = 1 if scope == "ziweiPalace" else 12
         if not isinstance(palaces, list) or len(palaces) != expected:
             raise ValueError("紫微宫位数据格式不正确")
         clean_chart = {
@@ -109,6 +110,7 @@ def clean_payload(data: dict[str, Any]) -> dict[str, Any]:
             "soulPalaceBranch": str(chart.get("soulPalaceBranch", ""))[:4],
             "bodyPalaceBranch": str(chart.get("bodyPalaceBranch", ""))[:4],
             "palaces": palaces,
+            "annual": chart.get("annual") if scope == "ziweiYear" else None,
         }
     return {
         "chartType": chart_type,

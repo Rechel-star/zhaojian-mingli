@@ -135,7 +135,18 @@ input {
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
 .segmented label { flex: 1; cursor: pointer; }
-.segmented input { position: absolute; width: auto; height: auto; opacity: 0; pointer-events: none; }
+.segmented input,
+.ziwei-scope-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
 .segmented span { display: grid; height: 32px; place-items: center; margin: 0; color: var(--muted); font-size: 11px; }
 .segmented input:checked + span { color: var(--white); background: var(--jade); }
 .time-note {
@@ -578,6 +589,47 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
 .mutagen.quan { background: #b64a36; }
 .mutagen.ke { background: #39758a; }
 .mutagen.ji { background: #514b64; }
+.ziwei-timebar {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 28px;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: rgba(255, 253, 248, .52);
+  border-block: 1px solid var(--line);
+}
+.ziwei-year-stepper { display: flex; align-items: center; gap: 7px; }
+.ziwei-year-stepper .icon-btn { width: 36px; height: 36px; border: 1px solid var(--line); }
+.ziwei-year-stepper label { display: grid; grid-template-columns: auto 82px; align-items: center; gap: 9px; }
+.ziwei-year-stepper label > span { color: var(--muted); font-size: 9px; }
+.ziwei-year-stepper input {
+  width: 82px;
+  height: 36px;
+  padding: 0 7px;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--line);
+  font: 600 15px "Noto Serif SC", serif;
+  text-align: center;
+}
+.ziwei-year-stepper input:focus-visible,
+.ziwei-year-stepper button:focus-visible,
+.ziwei-palace:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+.ziwei-year-stepper .text-btn {
+  min-height: 36px;
+  padding: 0 12px;
+  color: var(--jade);
+  background: transparent;
+  border: 1px solid var(--jade);
+  cursor: pointer;
+  font-size: 10px;
+}
+.ziwei-year-summary { display: grid; grid-template-columns: auto auto; align-content: center; column-gap: 12px; text-align: right; }
+.ziwei-year-summary span { grid-row: 1 / 3; align-self: center; color: var(--vermilion); font: 600 16px "Noto Serif SC", serif; }
+.ziwei-year-summary strong { font: 600 11px "Noto Serif SC", serif; }
+.ziwei-year-summary small { margin-top: 2px; color: var(--muted); font-size: 9px; }
 .ziwei-board-wrap {
   width: 100%;
   overflow-x: auto;
@@ -586,6 +638,7 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
   scrollbar-width: thin;
 }
 .ziwei-board {
+  position: relative;
   width: 100%;
   min-width: 780px;
   aspect-ratio: 1.28;
@@ -609,9 +662,13 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
   border: 0;
   cursor: pointer;
   overflow: hidden;
+  z-index: 2;
 }
 .ziwei-palace:hover { background: #f5f1e7; }
-.ziwei-palace.selected { box-shadow: inset 0 0 0 3px var(--vermilion); z-index: 2; }
+.ziwei-palace.selected { box-shadow: inset 0 0 0 3px var(--vermilion); z-index: 5; }
+.ziwei-palace.annual-life-palace { box-shadow: inset 5px 0 var(--vermilion); }
+.ziwei-palace.decadal-palace { border-top: 4px solid var(--gold); }
+.ziwei-palace.selected.annual-life-palace { box-shadow: inset 5px 0 var(--vermilion), inset 0 0 0 3px var(--vermilion); }
 .ziwei-palace.soul-palace::after {
   content: "命";
   position: absolute;
@@ -631,6 +688,33 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
 .palace-top, .palace-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; z-index: 1; }
 .palace-top b { font: 600 13px "Noto Serif SC", serif; }
 .palace-top small, .palace-bottom small { color: var(--muted); font-size: 9px; }
+.annual-palace-name {
+  position: absolute;
+  left: 11px;
+  bottom: 28px;
+  color: rgba(21, 58, 50, .5);
+  font-size: 8px;
+  z-index: 1;
+}
+.palace-annual-marks {
+  position: absolute;
+  top: 30px;
+  right: 9px;
+  display: flex;
+  gap: 3px;
+  z-index: 4;
+}
+.palace-annual-marks b,
+.annual-mutagen {
+  padding: 2px 4px;
+  color: var(--white);
+  font: 600 8px/1.2 "Noto Serif SC", serif;
+}
+.palace-annual-marks .lu, .annual-mutagen.lu { background: #37815e; }
+.palace-annual-marks .quan, .annual-mutagen.quan { background: #b64a36; }
+.palace-annual-marks .ke, .annual-mutagen.ke { background: #39758a; }
+.palace-annual-marks .ji, .annual-mutagen.ji { background: #514b64; }
+.annual-mutagen { margin-left: 3px; }
 .palace-stars {
   display: flex;
   flex-wrap: wrap;
@@ -649,6 +733,7 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
 .palace-bottom b { color: var(--vermilion); font-size: 9px; }
 .empty-star { color: var(--muted); font-size: 9px; }
 .ziwei-center {
+  position: relative;
   grid-row: 2 / 4;
   grid-column: 2 / 4;
   display: flex;
@@ -661,13 +746,32 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
     linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
     var(--ink);
   background-size: 22px 22px;
+  z-index: 4;
 }
-.ziwei-center-mark { display: grid; place-items: center; width: 48px; height: 48px; color: var(--white); background: var(--vermilion); font: 700 23px "Noto Serif SC", serif; }
-.ziwei-center > strong { margin-top: 12px; font: 600 22px "Noto Serif SC", serif; }
+.ziwei-center-title { display: flex; align-items: center; gap: 12px; }
+.ziwei-center-title > div { display: grid; gap: 2px; margin: 0; }
+.ziwei-center-title small { color: rgba(255,255,255,.5); font-size: 8px; }
+.ziwei-center-title strong { font: 600 22px "Noto Serif SC", serif; }
+.ziwei-center-mark { display: grid; place-items: center; width: 42px; height: 42px; color: var(--white); background: var(--vermilion); font: 700 20px "Noto Serif SC", serif; }
 .ziwei-center p { margin: 6px 0 0; color: rgba(255,255,255,.65); font-size: 11px; }
-.ziwei-center div { display: flex; gap: 12px; margin-top: 14px; }
-.ziwei-center div span { padding: 4px 7px; border: 1px solid rgba(255,255,255,.2); font-size: 9px; }
+.annual-transform-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; width: min(88%, 270px); margin-top: 13px; }
+.annual-transform-list span { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px; padding: 4px 6px; border: 1px solid rgba(255,255,255,.16); font-size: 9px; }
+.annual-transform-list span small { grid-column: 2; color: rgba(255,255,255,.42); font-size: 7px; }
 .ziwei-center > small { margin-top: 12px; color: rgba(255,255,255,.4); font-size: 9px; }
+.ziwei-arrows {
+  position: absolute;
+  inset: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+}
+.annual-arrow { fill: none; stroke-width: .018; stroke-dasharray: .06 .035; opacity: .82; }
+.annual-arrow.lu { stroke: #37815e; }
+.annual-arrow.quan { stroke: #b64a36; }
+.annual-arrow.ke { stroke: #39758a; }
+.annual-arrow.ji { stroke: #514b64; }
 .palace-inspector {
   margin-top: 28px;
   padding-top: 24px;
@@ -695,7 +799,6 @@ h2 { font-size: 23px; font-weight: 600; margin-top: 5px; }
 .ziwei-ai-controls { min-width: 0; }
 .ziwei-scope-switch { display: flex; border: 1px solid rgba(255,255,255,.2); }
 .ziwei-scope-switch label { flex: 1; cursor: pointer; }
-.ziwei-scope-switch input { position: absolute; width: auto; height: auto; opacity: 0; pointer-events: none; }
 .ziwei-scope-switch span { display: grid; min-height: 34px; place-items: center; margin: 0; color: rgba(255,255,255,.5); font-size: 10px; }
 .ziwei-scope-switch input:checked + span { color: var(--white); background: var(--jade); }
 .ziwei-ai textarea {
@@ -792,6 +895,11 @@ dialog p, dialog li { color: var(--muted); font-size: 12px; line-height: 1.75; }
   .ai-output { padding-left: 0; }
   .ziwei-hero { align-items: flex-start; }
   .ziwei-legend { grid-template-columns: 1fr; gap: 4px; padding-left: 10px; }
+  .ziwei-timebar { display: grid; gap: 10px; }
+  .ziwei-year-stepper { justify-content: space-between; }
+  .ziwei-year-stepper label { grid-template-columns: 70px 1fr; flex: 1; }
+  .ziwei-year-stepper input { width: 100%; }
+  .ziwei-year-summary { text-align: left; }
   .ziwei-board { min-width: 720px; }
   .palace-detail-grid { grid-template-columns: 1fr; gap: 16px; }
   .palace-detail-grid > div { padding: 0 0 14px; border-right: 0; border-bottom: 1px solid var(--line); }

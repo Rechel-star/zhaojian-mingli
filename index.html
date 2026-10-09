@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f3efe5">
   <title>照见 · 命理时间助手</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20261009.2">
 </head>
 <body>
   <div class="app-shell">
@@ -256,6 +256,27 @@
             </div>
           </div>
 
+          <section class="ziwei-timebar" aria-label="紫微流年选择">
+            <div class="ziwei-year-stepper">
+              <button class="icon-btn" id="ziweiPrevYear" type="button" aria-label="上一流年" title="上一流年">
+                <i data-lucide="chevron-left"></i>
+              </button>
+              <label>
+                <span>观察流年</span>
+                <input id="ziweiYear" type="number" min="1900" max="2100" inputmode="numeric">
+              </label>
+              <button class="icon-btn" id="ziweiNextYear" type="button" aria-label="下一流年" title="下一流年">
+                <i data-lucide="chevron-right"></i>
+              </button>
+              <button class="text-btn" id="ziweiCurrentYear" type="button">今年</button>
+            </div>
+            <div class="ziwei-year-summary">
+              <span id="ziweiYearGanZhi">丙午流年</span>
+              <strong id="ziweiYearLife">流年命宫</strong>
+              <small id="ziweiYearAge">虚岁 22 · 大限</small>
+            </div>
+          </section>
+
           <div class="ziwei-board-wrap">
             <div class="ziwei-board" id="ziweiBoard" aria-label="紫微斗数十二宫"></div>
           </div>
@@ -293,6 +314,7 @@
             <div class="ziwei-ai-controls">
               <div class="ziwei-scope-switch">
                 <label><input type="radio" name="ziweiScope" value="ziweiNatal" checked><span>全盘格局</span></label>
+                <label><input type="radio" name="ziweiScope" value="ziweiYear"><span>所选流年</span></label>
                 <label><input type="radio" name="ziweiScope" value="ziweiPalace"><span>当前宫位</span></label>
               </div>
               <textarea id="ziweiQuestion" rows="2" maxlength="500" placeholder="例如：这张盘的核心优势和长期课题是什么？"></textarea>
@@ -321,6 +343,6 @@
   <script src="./vendor/soul-bazi.min.js"></script>
   <script src="./vendor/iztro.min.js"></script>
   <script src="./vendor/lucide.min.js"></script>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=20261009.2"></script>
 </body>
 </html>
